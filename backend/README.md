@@ -1,0 +1,2 @@
+model resposne
+{"model":"llama3.2:1b","created_at":"2026-01-29T16:31:49.9564806Z","response":"How's your day going so far?","done":true,"done_reason":"stop","context":[128006,9125,128007,271,38766,1303,33025,2696,25,6790,220,2366,18,271,128009,128006,882,128007,271,1,6151,1,128009,128006,78191,128007,271,4438,596,701,1938,2133,779,3117,30],"total_duration":6184595000,"load_duration":5919337900,"prompt_eval_count":28,"prompt_eval_duration":40229200,"eval_count":9,"eval_duration":154149700}
