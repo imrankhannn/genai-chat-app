@@ -1,22 +1,22 @@
 from fastapi import FastAPI
 from app.only_llm import ask_llm
 from pydantic import BaseModel
-from app.rag import (
-    load_documents,
-    create_embedding,
-    create_vector_store,
-    chunk_documents,
-    add_documents_to_vector_store,
-    answer_with_rag,
-    load_pdf_document
-)
+# from app.rag import (
+#     load_documents,
+#     create_embedding,
+#     create_vector_store,
+#     chunk_documents,
+#     add_documents_to_vector_store,
+#     answer_with_rag,
+#     load_pdf_document
+# )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, File
 import shutil
 import os
 
-from app.session_store import get_session
-from app.doc_ingestion import ingest_document
+# from app.session_store import get_session
+# from app.doc_ingestion import ingest_document
 
 app=FastAPI()
 
@@ -24,19 +24,19 @@ app=FastAPI()
 UPLOAD_DIR = "temp_uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-@app.post("/upload-doc")
-def upload_doc(session_id: str, file: UploadFile = File(...)):
-    session = get_session(session_id)
+# @app.post("/upload-doc")
+# def upload_doc(session_id: str, file: UploadFile = File(...)):
+#     session = get_session(session_id)
 
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+#     file_path = os.path.join(UPLOAD_DIR, file.filename)
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+#     with open(file_path, "wb") as buffer:
+#         shutil.copyfileobj(file.file, buffer)
 
-    session["vector_store"] = ingest_document(file_path)
-    session["doc_uploaded"] = True
+#     session["vector_store"] = ingest_document(file_path)
+#     session["doc_uploaded"] = True
 
-    return {"status": "Document uploaded and indexed"}
+#     return {"status": "Document uploaded and indexed"}
 
 
 app.add_middleware(
@@ -52,18 +52,18 @@ class QuestionRequest(BaseModel):
     session_id: str
 
 
-docs = load_documents()
-embeddings = create_embedding()
-vector_store = create_vector_store(docs, embeddings)
+# docs = load_documents()
+# embeddings = create_embedding()
+# vector_store = create_vector_store(docs, embeddings)
 
-# 2️⃣ Load PDF
-pdf_docs = load_pdf_document("Utils/Moltbook.pdf")
+# # 2️⃣ Load PDF
+# pdf_docs = load_pdf_document("Utils/Moltbook.pdf")
 
-# 3️⃣ Chunk PDF
-pdf_chunks = chunk_documents(pdf_docs)
+# # 3️⃣ Chunk PDF
+# pdf_chunks = chunk_documents(pdf_docs)
 
 # 4️⃣ Add to FAISS
-add_documents_to_vector_store(vector_store, pdf_chunks)
+# add_documents_to_vector_store(vector_store, pdf_chunks)
 
 @app.post("/ask-rag-chat")
 def ask_rag_chat(req: QuestionRequest):
@@ -73,7 +73,7 @@ def ask_rag_chat(req: QuestionRequest):
     if not question.strip():
         return {"error": "Question cannot be empty"}
 
-    answer, _ = answer_with_rag(vector_store, question, session_id)
+    # answer, _ = answer_with_rag(vector_store, question, session_id)
     return {"answer": answer}
 
 @app.post("/ask-llm")
