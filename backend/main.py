@@ -10,7 +10,6 @@ from app.rag import (
     answer_with_rag,
     load_pdf_document
 )
-
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, File
 import shutil
@@ -18,7 +17,6 @@ import os
 
 from app.session_store import get_session
 from app.doc_ingestion import ingest_document
-
 
 app=FastAPI()
 

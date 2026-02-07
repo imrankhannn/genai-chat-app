@@ -1,21 +1,21 @@
 # Using Cloud LLM
 
 from app.groq_client import get_groq_client
-from app.memory_store import get_memories
+# from app.memory_store import get_memories
 from app.session_store import get_session
 
 client = get_groq_client()
 
 def ask_doc_chat(question: str, session_id: str) -> str:
     session = get_session(session_id)
-    memory = get_memories(session_id)["doc"]
+    # memory = get_memories(session_id)["doc"]
 
     retriever = session["vector_store"].as_retriever(search_kwargs={"k": 5})
     docs = retriever.invoke(question)
 
     context = "\n".join(d.page_content for d in docs)
 
-    history = memory.load_memory_variables({}).get("history", [])
+    # history = memory.load_memory_variables({}).get("history", [])
 
     messages = [
         {"role": "system", "content": """You are a helpful AI assistant.
@@ -26,11 +26,11 @@ Only say "I don't know" if the context is completely unrelated.
 Answer should not be more than 50 words."""}
     ]
 
-    for msg in history:
-        messages.append({
-            "role": "user" if msg.type == "human" else "assistant",
-            "content": msg.content
-        })
+    # for msg in history:
+    #     messages.append({
+    #         "role": "user" if msg.type == "human" else "assistant",
+    #         "content": msg.content
+    #     })
 
     messages.append({
         "role": "user",
@@ -51,11 +51,11 @@ Question:
 
     answer = response.choices[0].message.content.strip()
 
-    if answer.lower() != "i don't know":
-        memory.save_context(
-            {"input": question},
-            {"output": answer}
-        )
+    # if answer.lower() != "i don't know":
+    #     memory.save_context(
+    #         {"input": question},
+    #         {"output": answer}
+    #     )
 
     return answer
 
