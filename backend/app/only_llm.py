@@ -11,7 +11,7 @@ def ask_llm(question: str, session_id: str) -> str:
     messages = [
         {"role": "system", "content": """You are a helpful AI assistant.
 Answer clearly and concisely.
-Answer should not be more than 50 words."""
+Answer should not be more than 20 words."""
          }
     ]
 

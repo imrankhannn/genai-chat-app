@@ -11,7 +11,7 @@ export default function App() {
   const [docUploaded, setDocUploaded] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
-
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
   useEffect(() => {
   chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
 }, [messages]);
@@ -62,7 +62,8 @@ export default function App() {
       mode === "llm" ? "ask-llm" : "ask-doc-chat";
     setIsTyping(true);
 
-    const res = await fetch(`http://localhost:8000/${endpoint}`, {
+    // const res = await fetch(`http://localhost:8000/${endpoint}`, {
+    const res = await fetch(`${API_BASE}/ask-llm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
