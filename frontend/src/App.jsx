@@ -62,8 +62,8 @@ export default function App() {
       mode === "llm" ? "ask-llm" : "ask-doc-chat";
     setIsTyping(true);
 
-    // const res = await fetch(`http://localhost:8000/${endpoint}`, {
-    const res = await fetch(`${API_BASE}/ask-llm`, {
+    const res = await fetch(`http://localhost:8000/${endpoint}`, {
+    // const res = await fetch(`${API_BASE}/ask-llm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
