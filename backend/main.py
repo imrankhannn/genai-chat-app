@@ -43,7 +43,7 @@ app.add_middleware(
     CORSMiddleware,
     # allow_origins=["http://localhost:5173"], # for localhost
     # allow_origins=["*"], # for cloud server 
-    allow_origins=["https://genai-chat-app-zeta.vercel.app"]
+    allow_origins=["https://genai-chat-app-zeta.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -72,16 +72,16 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/ask-rag-chat")
-def ask_rag_chat(req: QuestionRequest):
-    question = req.question
-    session_id = req.session_id
+# @app.post("/ask-rag-chat")
+# def ask_rag_chat(req: QuestionRequest):
+#     question = req.question
+#     session_id = req.session_id
 
-    if not question.strip():
-        return {"error": "Question cannot be empty"}
+#     if not question.strip():
+#         return {"error": "Question cannot be empty"}
 
-    # answer, _ = answer_with_rag(vector_store, question, session_id)
-    return {"answer": answer}
+#     # answer, _ = answer_with_rag(vector_store, question, session_id)
+#     return {"answer": answer}
 
 @app.post("/ask-llm")
 def ask_llm_chat(req: QuestionRequest):
