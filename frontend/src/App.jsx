@@ -61,6 +61,7 @@ export default function App() {
     const endpoint =
       mode === "llm" ? "ask-llm" : "ask-doc-chat";
     setIsTyping(true);
+    console.log(API_BASE);
 
     // const res = await fetch(`http://localhost:8000/${endpoint}`, {
     const res = await fetch(`${API_BASE}/ask-llm`, {
