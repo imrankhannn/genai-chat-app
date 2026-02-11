@@ -66,6 +66,11 @@ class QuestionRequest(BaseModel):
 # 4️⃣ Add to FAISS
 # add_documents_to_vector_store(vector_store, pdf_chunks)
 
+@app.get("/")
+def health():
+    return {"status": "ok"}
+
+
 @app.post("/ask-rag-chat")
 def ask_rag_chat(req: QuestionRequest):
     question = req.question
