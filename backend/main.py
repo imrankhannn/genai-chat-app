@@ -43,8 +43,8 @@ app.add_middleware(
     CORSMiddleware,
     # allow_origins=["http://localhost:5173"], # for localhost
     # allow_origins=["*"], # for cloud server 
-    allow_origins=["https://genai-chat-app-zeta.vercel.app"],
-    allow_credentials=False,
+    allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
