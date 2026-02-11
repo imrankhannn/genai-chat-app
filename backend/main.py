@@ -21,8 +21,8 @@ import os
 app=FastAPI()
 
 
-UPLOAD_DIR = "temp_uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# UPLOAD_DIR = "temp_uploads"
+# os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # @app.post("/upload-doc")
 # def upload_doc(session_id: str, file: UploadFile = File(...)):
