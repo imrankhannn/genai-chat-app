@@ -1,12 +1,12 @@
 # Using cloud LLM
 
-# from app.memory_store import get_memories
+from app.memory_store import get_memories
 from app.groq_client import get_groq_client
 
 client = get_groq_client()
 
 def ask_llm(question: str, session_id: str) -> str:
-    # memory = get_memories(session_id)["llm"]
+    memory = get_memories(session_id)["llm"]
 
     messages = [
         {"role": "system", "content": """You are a helpful AI assistant.
@@ -25,11 +25,11 @@ Answer should not be more than 20 words."""
 
     answer = response.choices[0].message.content.strip()
 
-    # if answer.lower() != "i don't know":
-    #     memory.save_context(
-    #         {"input": question},
-    #         {"output": answer}
-    #     )
+    if answer.lower() != "i don't know":
+        memory.save_context(
+            {"input": question},
+            {"output": answer}
+        )
 
     return answer
 
