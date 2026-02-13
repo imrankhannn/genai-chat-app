@@ -119,7 +119,7 @@ if (mode === "llm") {
   return (
     <div style={styles.page}>
     <div style={styles.container}>
-      <h2>GenAI Chat</h2>
+      <h2>Mizan Chat</h2>
 
       {/* Mode Switch */}
       <div style={styles.modeBar}>
