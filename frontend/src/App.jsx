@@ -47,67 +47,63 @@ export default function App() {
 
 
   const sendMessage = async () => {
-    if (isTyping) return;
-    // 🔒 hard stop for doc mode without document
-  if (mode === "doc" && !docUploaded) return;
-
+  if (isTyping) return;
   if (!input.trim()) return;
 
-    const userMessage = input;
-    setInput("");
+  if (mode === "doc" && !docUploaded) return;
 
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+  const userMessage = input;
+  setInput("");
 
-    const endpoint =
-      mode === "llm" ? "ask-llm" : "ask-doc-chat";
-    setIsTyping(true);
-    console.log(API_BASE);
+  setMessages(prev => [...prev, { role: "user", content: userMessage }]);
 
-    // const res = await fetch(`http://localhost:8000/${endpoint}`, {
-    const res = await fetch(`${API_BASE}/ask-llm`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        question: userMessage,
-        session_id: sessionId
-      })
-    });
+  const endpoint = mode === "llm" ? "ask-llm" : "ask-doc-chat";
 
-    const data = await res.json();
+  setIsTyping(true);
 
-    setIsTyping(true);
+  const res = await fetch(`${API_BASE}/${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question: userMessage,
+      session_id: sessionId
+    })
+  });
 
-if (mode === "llm") {
-  typeReply(data.answer);
-} else {
-  // document mode → normal instant reply
-  setMessages(prev => [
-    ...prev,
-    { role: "assistant", content: data.answer }
-  ]);
-  setIsTyping(false);
-}
+  const data = await res.json();
 
+  if (mode === "llm") {
+    typeReply(data.answer);
+  } else {
+    setMessages(prev => [
+      ...prev,
+      { role: "assistant", content: data.answer }
+    ]);
     setIsTyping(false);
-  };
+  }
+};
+
 
   const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
+  const formData = new FormData();
+  formData.append("file", file);
 
-    await fetch(
-      `http://localhost:8000/upload-doc?session_id=${sessionId}`,
-      {
-        method: "POST",
-        body: formData
-      }
-    );
+  await fetch(`${API_BASE}/upload?session_id=${sessionId}`, {
+    method: "POST",
+    body: formData
+  });
 
-    setDocUploaded(true);
-  };
+  setDocUploaded(true);
+
+  setMessages(prev => [
+    ...prev,
+    { role: "assistant", content: "Document uploaded successfully. You can now ask questions." }
+  ]);
+};
+
 
   const newChat = () => {
     setSessionId(crypto.randomUUID());
@@ -119,7 +115,7 @@ if (mode === "llm") {
   return (
     <div style={styles.page}>
     <div style={styles.container}>
-      <h2>Mizan Chat</h2>
+      <h2>Multi-Level GenAI</h2>
 
       {/* Mode Switch */}
       <div style={styles.modeBar}>
@@ -182,7 +178,13 @@ if (mode === "llm") {
           style={styles.input}
           value={input}
           onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && sendMessage()}
+          onKeyDown={e => {
+  if (e.key === "Enter") {
+    if (mode === "doc" && !docUploaded) return;
+    sendMessage();
+  }
+}}
+
           placeholder="Type your question..."
         />
         <button
