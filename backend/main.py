@@ -92,17 +92,21 @@ def ask_doc_api(req: QuestionRequest):
         "answer": ask_rag(req.question, req.session_id, session_vector_store)
     }
 
-@app.post("/ask-web-chat")
-def ask_web_api(req: QuestionRequest):
+class WebsiteRequest(BaseModel):
+    url: str
+    session_id: str
+
+@app.post("/load-website")
+def load_website_api(req: WebsiteRequest):
     global web_vector_store, current_web_session
 
-    if not web_vector_store:
-        return {"error": "No website loaded"}
+    web_vector_store = None
+    current_web_session = None
 
-    if req.session_id != current_web_session:
-        return {"error": "Session expired. Load website again."}
+    documents = load_website(req.url)
+    web_vector_store = create_vector_store(documents)
 
-    answer = ask_rag(req.question, req.session_id, web_vector_store)
+    current_web_session = req.session_id
 
-    return {"answer": answer}
+    return {"message": "Website loaded successfully"}
 
