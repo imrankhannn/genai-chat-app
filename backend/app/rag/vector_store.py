@@ -13,4 +13,11 @@ def create_vector_store(documents):
 
     embeddings = get_embeddings()
 
-    return FAISS.from_documents(chunks, embeddings)
+    # test = embeddings.embed_documents(["test document"])
+    # print("HF TEST EMBEDDING:", test)
+
+
+    return FAISS.from_documents(
+        documents=chunks,
+        embedding=embeddings
+    )
