@@ -2,207 +2,236 @@ import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
 export default function App() {
-  const [mode, setMode] = useState("llm"); // llm | doc
+  const [mode, setMode] = useState("llm"); // llm | doc | web
   const [sessionId, setSessionId] = useState(crypto.randomUUID());
   const [messages, setMessages] = useState([
     { role: "assistant", content: "Hi! Ask me anything." }
   ]);
   const [input, setInput] = useState("");
   const [docUploaded, setDocUploaded] = useState(false);
+  const [webLoaded, setWebLoaded] = useState(false);
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+
   const chatEndRef = useRef(null);
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
-  useEffect(() => {
-  chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-}, [messages]);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const typeReply = (fullText) => {
-  let index = 0;
+    let index = 0;
 
-  // add empty assistant message
-  setMessages(prev => [
-    ...prev,
-    { role: "assistant", content: "" }
-  ]);
+    setMessages(prev => [...prev, { role: "assistant", content: "" }]);
 
-  const interval = setInterval(() => {
-    index++;
+    const interval = setInterval(() => {
+      index++;
 
-    setMessages(prev => {
-      const updated = [...prev];
-      updated[updated.length - 1] = {
-        ...updated[updated.length - 1],
-        content: fullText.slice(0, index)
-      };
-      return updated;
-    });
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          ...updated[updated.length - 1],
+          content: fullText.slice(0, index)
+        };
+        return updated;
+      });
 
-    if (index >= fullText.length) {
-      clearInterval(interval);
-      setIsTyping(false);
-    }
-  }, 20); // typing speed (ms)
-};
-
+      if (index >= fullText.length) {
+        clearInterval(interval);
+        setIsTyping(false);
+      }
+    }, 20);
+  };
 
   const sendMessage = async () => {
-  if (isTyping) return;
-  if (!input.trim()) return;
+    if (isTyping) return;
+    if (!input.trim()) return;
 
-  if (mode === "doc" && !docUploaded) return;
+    if (mode === "doc" && !docUploaded) return;
+    if (mode === "web" && !webLoaded) return;
 
-  const userMessage = input;
-  setInput("");
+    const userMessage = input;
+    setInput("");
 
-  setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
 
-  const endpoint = mode === "llm" ? "ask-llm" : "ask-doc-chat";
+    let endpoint = "ask-llm";
+    if (mode === "doc") endpoint = "ask-doc-chat";
+    if (mode === "web") endpoint = "ask-web-chat";
 
-  setIsTyping(true);
+    setIsTyping(true);
 
-  const res = await fetch(`${API_BASE}/${endpoint}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      question: userMessage,
-      session_id: sessionId
-    })
-  });
+    const res = await fetch(`${API_BASE}/${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: userMessage,
+        session_id: sessionId
+      })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (mode === "llm") {
-    typeReply(data.answer);
-  } else {
-    setMessages(prev => [
-      ...prev,
-      { role: "assistant", content: data.answer }
-    ]);
-    setIsTyping(false);
-  }
-};
-
+    if (mode === "llm") {
+      typeReply(data.answer);
+    } else {
+      setMessages(prev => [
+        ...prev,
+        { role: "assistant", content: data.answer }
+      ]);
+      setIsTyping(false);
+    }
+  };
 
   const handleUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const formData = new FormData();
-  formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
 
-  await fetch(`${API_BASE}/upload?session_id=${sessionId}`, {
-    method: "POST",
-    body: formData
-  });
+    await fetch(`${API_BASE}/upload?session_id=${sessionId}`, {
+      method: "POST",
+      body: formData
+    });
 
-  setDocUploaded(true);
+    setDocUploaded(true);
+    setMessages(prev => [
+      ...prev,
+      { role: "assistant", content: "Document uploaded successfully." }
+    ]);
+  };
 
-  setMessages(prev => [
-    ...prev,
-    { role: "assistant", content: "Document uploaded successfully. You can now ask questions." }
-  ]);
-};
+  const loadWebsite = async () => {
+    if (!websiteUrl) return;
 
+    await fetch(`${API_BASE}/load-website`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: websiteUrl,
+        session_id: sessionId
+      })
+    });
+
+    setWebLoaded(true);
+    setMessages(prev => [
+      ...prev,
+      { role: "assistant", content: "Website loaded successfully." }
+    ]);
+  };
 
   const newChat = () => {
     setSessionId(crypto.randomUUID());
     setMessages([{ role: "assistant", content: "New chat started." }]);
     setDocUploaded(false);
+    setWebLoaded(false);
+    setWebsiteUrl("");
     setMode("llm");
   };
 
   return (
     <div style={styles.page}>
-    <div style={styles.container}>
-      <h2>Multi-Level GenAI</h2>
+      <div style={styles.container}>
+        <h2>Multi-Level GenAI</h2>
 
-      {/* Mode Switch */}
-      <div style={styles.modeBar}>
-        <button
-          style={mode === "llm" ? styles.active : styles.button}
-          onClick={() => setMode("llm")}
-        >
-          LLM Mode
-        </button>
-        <button
-          style={mode === "doc" ? styles.active : styles.button}
-          onClick={() => setMode("doc")}
-        >
-          Document Mode
-        </button>
+        <div style={styles.modeBar}>
+          <button
+            style={mode === "llm" ? styles.active : styles.button}
+            onClick={() => setMode("llm")}
+          >
+            LLM
+          </button>
 
-        <button onClick={newChat} style={styles.button}>
-          New Chat
-        </button>
-      </div>
+          <button
+            style={mode === "doc" ? styles.active : styles.button}
+            onClick={() => setMode("doc")}
+          >
+            Document
+          </button>
 
-      {/* Upload */}
-      {mode === "doc" && (
-        <div style={styles.upload}>
-          <input type="file" accept=".pdf" onChange={handleUpload} />
-          {!docUploaded && (
-            <small>Please upload a document</small>
-          )}
+          <button
+            style={mode === "web" ? styles.active : styles.button}
+            onClick={() => setMode("web")}
+          >
+            Website
+          </button>
+
+          <button onClick={newChat} style={styles.button}>
+            New Chat
+          </button>
         </div>
-      )}
 
-      {/* Chat */}
-      <div style={styles.chat}>
-        {messages.map((m, i) => (
-          <div
-            key={i}
+        {mode === "doc" && (
+          <div style={styles.upload}>
+            <input type="file" accept=".pdf,.txt,.docx" onChange={handleUpload} />
+            {!docUploaded && <small>Please upload a document</small>}
+          </div>
+        )}
+
+        {mode === "web" && (
+          <div style={styles.upload}>
+            <input
+              style={styles.input}
+              placeholder="Enter website URL..."
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+            />
+            <button style={styles.button} onClick={loadWebsite}>
+              Load Website
+            </button>
+            {!webLoaded && <small>Please load a website</small>}
+          </div>
+        )}
+
+        <div style={styles.chat}>
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              style={m.role === "user" ? styles.userMsg : styles.botMsg}
+            >
+              <ReactMarkdown>{m.content}</ReactMarkdown>
+            </div>
+          ))}
+
+          {isTyping && <div style={styles.botMsg}>Assistant is typing…</div>}
+
+          <div ref={chatEndRef} />
+        </div>
+
+        <div style={styles.inputBar}>
+          <input
+            style={styles.input}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") sendMessage();
+            }}
+            placeholder="Type your question..."
+          />
+
+          <button
             style={
-              m.role === "user"
-                ? styles.userMsg
-                : styles.botMsg
+              (mode === "doc" && !docUploaded) ||
+              (mode === "web" && !webLoaded)
+                ? styles.disabledBtn
+                : styles.button
+            }
+            onClick={sendMessage}
+            disabled={
+              (mode === "doc" && !docUploaded) ||
+              (mode === "web" && !webLoaded)
             }
           >
-            <ReactMarkdown>{m.content}</ReactMarkdown>
-
-          </div>
-        ))}
-        {isTyping && (
-  <div style={styles.botMsg}>
-    Assistant is typing…
-  </div>
-)}
-<div ref={chatEndRef} />
-
+            Send
+          </button>
+        </div>
       </div>
-
-
-      {/* Input */}
-      <div style={styles.inputBar}>
-        <input
-          style={styles.input}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => {
-  if (e.key === "Enter") {
-    if (mode === "doc" && !docUploaded) return;
-    sendMessage();
-  }
-}}
-
-          placeholder="Type your question..."
-        />
-        <button
-  style={
-    mode === "doc" && !docUploaded
-      ? styles.disabledBtn
-      : styles.button
-  }
-  onClick={sendMessage}
-  disabled={mode === "doc" && !docUploaded}
->
-          Send
-        </button>
-      </div>
-    </div>
     </div>
   );
 }
+
 
 const styles = {
   page: {

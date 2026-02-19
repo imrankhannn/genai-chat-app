@@ -9,6 +9,10 @@ from app.rag.document_loader import load_document
 from app.rag.vector_store import create_vector_store
 from app.rag.rag_chat import ask_rag
 
+from app.rag.web_loader import load_website
+from app.rag.vector_store import create_vector_store
+
+
 app = FastAPI()
 
 app.add_middleware(
@@ -25,6 +29,9 @@ class QuestionRequest(BaseModel):
 
 session_vector_store = None
 current_session_id = None
+
+web_vector_store = None
+current_web_session = None
 
 @app.get("/")
 def home():
@@ -52,6 +59,20 @@ def upload_file(file: UploadFile = File(...), session_id: str = None):
 
     return {"message": "File processed and old session cleared"}
 
+@app.post("/load-website")
+def load_website_api(url: str, session_id: str):
+    global web_vector_store, current_web_session
+
+    web_vector_store = None
+    current_web_session = None
+
+    documents = load_website(url)
+    web_vector_store = create_vector_store(documents)
+
+    current_web_session = session_id
+
+    return {"message": "Website loaded successfully"}
+
 
 @app.post("/ask-llm")
 def ask_llm_api(req: QuestionRequest):
@@ -70,4 +91,18 @@ def ask_doc_api(req: QuestionRequest):
     return {
         "answer": ask_rag(req.question, req.session_id, session_vector_store)
     }
+
+@app.post("/ask-web-chat")
+def ask_web_api(req: QuestionRequest):
+    global web_vector_store, current_web_session
+
+    if not web_vector_store:
+        return {"error": "No website loaded"}
+
+    if req.session_id != current_web_session:
+        return {"error": "Session expired. Load website again."}
+
+    answer = ask_rag(req.question, req.session_id, web_vector_store)
+
+    return {"answer": answer}
 
